@@ -1,0 +1,101 @@
+#!/bin/bash
+# gique horloge v2
+# (c) 2004 - gyo
+# licence : GPL
+
+# horloge destinée aux 1337 h4><0r 933ks ;)
+# utilise le BCD ( binary coded decimal )
+# chaque chiffre de l'heure est codé en binaire
+# plus un voyant est haut dans l'affichage plus il a de poids
+
+# exemple : 17:14:59
+#  · · · · · O
+#  · O · O O ·
+#  · O · · · ·
+#  O O O · O O
+
+#trap "tput cnorm;exit" 2
+trap 'echo -e "\033[?25h";exit' 2
+
+#tput civis
+echo -e "\033[?25l"
+
+clear
+
+coul=1
+coul=${1:-$coul}
+colh="\e[1;37m"
+d_colh="\e[1;30m"
+colm="\e[1;39m"
+d_colm="\e[1;30m"
+blue="\e[1;34m"
+d_blue="\e[0;34m"
+green="\e[1;32m"
+d_green="\e[0;32m"
+
+
+rien="\e[0m"
+lh_on="${colh}O"
+lh_off="${d_colh}o"
+lm_on="${colm}o"
+lm_off="${d_colm}o"
+ls_on="${blue}o"
+ls_off="${d_blue}o"
+
+if [ "$1" = "--nosec" ]; then
+	strtime="+%H%M"
+else
+	strtime="+%H%M%S"
+fi
+
+set -- $(stty size)
+ncols=$2;nlines=$1
+
+offs_x=0
+offs_y=0
+#offs_x=$((ncols/2-6))
+#offs_y=$((nlines/2-2))
+
+afficheleds() {
+hpos=$1
+nbleds=$2
+
+l_on="$lh_on"
+l_off="$lh_off"
+
+for ((k=0;k<4;k++)); do
+	if [ $k -lt $nbleds ]; then
+		if [ $hpos -gt 1 ]; then l_on="$lm_on";l_off="$lm_off"; fi
+		if [ $hpos -gt 3 ]; then l_on="$ls_on";l_off="$ls_off"; fi
+		if ((nb%2)); then
+			 c="$l_on$rien"
+		else c="$l_off$rien" ;fi
+	else c=""; fi
+	echo -en "\e[$((4-$k+$offs_y));$(((hpos+1)*2-1+offs_x))H"
+	echo -en "$c"
+	nb=$((nb/2))
+done
+}
+cadre_h="             "
+#echo -ne "\e[1;44m"	
+#echo -ne "\e[$((offs_y));$((offs_x))H$cadre_h"
+#echo -ne "\e[$((offs_y+5));$((offs_x))H$cadre_h"
+#
+#for ((i=offs_y;i<$offs_y+6;i++));do
+#	echo -ne "\e[$i;$((offs_x-1))H "
+#	echo -ne "\e[$i;$((offs_x+13))H "
+#done
+#echo -ne "$rien"	
+
+l_nbled=( 2 4 3 4 3 4 )
+
+while :;do
+
+	time=$(date $strtime)
+	for ((i=0;i<${#time};i++)); do
+		nb=${time:i:1}
+		afficheleds $i ${l_nbled[i]}
+		echo -en "\e[$((offs_y+4));$((offs_x+1))H"
+	done
+	sleep 1
+done
