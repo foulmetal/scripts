@@ -1,0 +1,11 @@
+# 2011/06
+
+# Draft script for extracting audio from DVDs
+# useful when you want to listen them in your portable multimedia player or smartphone
+# or in car (mp3 still sux ;) )
+
+# dependencies : mplayer, ffmpeg
+
+for chap in {1..42}; do mplayer -dvd-device ${DVD_DEVICE} dvd:// -chapter ${chap}-${chap} -aid $aid -vo null -dumpaudio -dumpfile ${TITLE}_${chap}_dump.audio; done
+
+for i in {1..42}; do if [ $i -lt 10 ]; then num="0"$i; else num=$i; fi; ffmpeg -i ${TITLE}_${i}_dump.audio -ab 224k -ar 44100 ${TITLE}_$num.mp3; done
